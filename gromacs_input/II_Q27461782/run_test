@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+#
+# Multiple Molecular Dynamics Run set up
+total=$1
+echo "Number of runs = ${total}"
+
+# Minimization
+gmx grompp -f min.mdp -o min.tpr -c init.gro -r init.gro -p topol.top -maxwarn -1
+gmx mdrun -ntomp 4 -v -deffnm min
+
+# Equilibration runs
+gmx grompp -f eq.mdp -o eq.tpr -c min.gro -r min.gro -p topol.top -n index.ndx -maxwarn -1
+for ((num=0; num<${total}; num++));
+ do
+ gmx mdrun -ntomp 4 -dlb auto -s eq.tpr -x eq_${num}.xtc -e eq_${num}.edr -cpo eq_${num}.cpt -c eq_${num}.gro -g eq_${num}.log -v -nsteps 10
+done
+
+# Production runs
+for ((num=0; num<${total}; num++));
+ do
+ gmx grompp -f prod.mdp -o prod_${num}.tpr -c eq_${num}.gro -t eq_${num}.cpt -r init.gro -p topol.top -n index.ndx -maxwarn -1
+ gmx mdrun -ntomp 4 -dlb auto -s prod_${num}.tpr -x prod_${num}.xtc -e prod_${num}.edr -cpo prod_${num}.cpt -c prod_${num}.gro -g prod_${num}.log -v -nsteps -1 -maxh 0.01
+done
+
+# Production runs - restart
+for ((num=0; num<${total}; num++));
+ do
+ gmx mdrun -ntomp 4 -dlb auto -s prod_${num}.tpr -x prod_${num}.xtc -e prod_${num}.edr -cpi prod_${num}.cpt -cpo prod_${num}.cpt -c prod_${num}.gro -g prod_${num}.log -v -nsteps -1 -maxh 0.01
+done
+
+
