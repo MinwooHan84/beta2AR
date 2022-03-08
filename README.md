@@ -1,5 +1,5 @@
 # Summary
-This repository contains the collection of GROMACS input file of ten beta2AR-ligand system and python scripts for attention map analysis.
+This repository contains the collection of GROMACS input file of ten beta2AR-ligand systems and python scripts for attention map analysis.
 
 # Folder description
 attention_map_analsys/
